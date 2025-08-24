@@ -39,6 +39,19 @@ yarn build
 yarn preview
 ```
 
+### Tests
+
+- Unit tests cover the core state and runtime logic:
+  - Store: merging scanner pages, price/mcap tick updates, pair‑stats audit updates
+  - Hook: per‑row subscribe/unsubscribe on mount/unmount
+- Run tests:
+
+```bash
+yarn test
+# or
+yarn test:watch
+```
+
 ### API notes:
 
 You will have to use a no-cors extension from the chrome web store during development
@@ -82,7 +95,8 @@ You will have to use a no-cors extension from the chrome web store during develo
 
 ### Limitations / Trade‑offs
 
-- For simplicity, local reordering is applied on batched updates; in high‑churn scenarios, server‑driven ordering might be preferable
-- Icons and token metadata are derived from available fields; gaps are displayed gracefully
-- Showing an icon for tokens is skipped due to time constraints. Possible solution is using CoinGeck API
-- Different sorting support is skipped due to time constraints. Also it might be confusing in the context of trending or new tokens titles.
+- **Local reordering vs server ordering**: The UI reorders locally on debounced flush. Under very high churn, server‑driven ordering may be more consistent.
+- **Token/media assets**: Token icons and some metadata are not fetched from external services; rows render gracefully without them.
+- **Token icons omitted**: Skipped due to time constraints. Potential follow‑up: integrate CoinGecko or a token metadata service.
+- **Sorting breadth**: Broad, arbitrary sorting modes are not implemented to keep focus on “Trending” (volume) and “New” (age), avoiding UX confusion.
+- **Schema validation**: Runtime validation of API responses (e.g., with zod) is not included; types assume well‑formed responses.

@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useEffect } from "react";
 import { TableVirtuoso } from "react-virtuoso";
 import numeral from "numeral";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -44,6 +44,8 @@ export interface ScannerTableProps {
   isLoading?: boolean;
   onEndReached?: () => void;
   isFetchingMore?: boolean;
+  onRowMount?: (id: string) => void;
+  onRowUnmount?: (id: string) => void;
 }
 
 function formatUsd(n: number) {
@@ -75,6 +77,8 @@ export const ScannerTable = memo(function ScannerTable({
   isLoading,
   onEndReached,
   isFetchingMore,
+  onRowMount,
+  onRowUnmount,
 }: ScannerTableProps) {
   const columns = useMemo<ColumnDef<ScannerTableRow>[]>(
     () => [
@@ -304,15 +308,26 @@ export const ScannerTable = memo(function ScannerTable({
   const tableRows = table.getRowModel().rows;
   const virtuosoComponents = useMemo(
     () => ({
-      TableRow: (props: any) => (
-        <tr
-          {...props}
-          className={
-            (props.className ?? "") +
-            " text-sm hover:bg-neutral-900/60 odd:bg-neutral-950 even:bg-neutral-900"
-          }
-        />
-      ),
+      TableRow: (props: any) => {
+        const id: string | undefined =
+          props?.item?.original?.id ?? props?.["data-row-id"]; // depends on virtuoso internals
+        // best-effort: we also pass data-row-id from itemContent below
+        useEffect(() => {
+          if (id && onRowMount) onRowMount(id);
+          return () => {
+            if (id && onRowUnmount) onRowUnmount(id);
+          };
+        }, [id]);
+        return (
+          <tr
+            {...props}
+            className={
+              (props.className ?? "") +
+              " text-sm hover:bg-neutral-900/60 odd:bg-neutral-950 even:bg-neutral-900"
+            }
+          />
+        );
+      },
       TableHead: (props: any) => (
         <thead
           {...props}
@@ -368,43 +383,49 @@ export const ScannerTable = memo(function ScannerTable({
       <div className="text-center px-3 py-2 border-b border-neutral-800 text-neutral-200 text-sm font-semibold">
         {title}
       </div>
-      <TableVirtuoso
-        data={tableRows}
-        computeItemKey={(_, row) => row.original.id}
-        endReached={() => onEndReached?.()}
-        fixedHeaderContent={renderHeader}
-        components={virtuosoComponents}
-        itemContent={(_, row) => (
-          <>
-            {row.getVisibleCells().map((cell) => (
-              <td
-                key={cell.column.id + row.original.id}
-                className={
-                  ([
-                    "priceUsd",
-                    "mcap",
-                    "mcapPc",
-                    "volumeUsd",
-                    "chg5m",
-                    "chg1h",
-                    "chg6h",
-                    "chg24h",
-                    "age",
-                  ].includes(cell.column.id)
-                    ? "text-right "
-                    : "text-left ") +
-                  "px-3 py-2 border-b border-neutral-800 align-middle text-xs font-mono"
-                }
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
-            ))}
-          </>
-        )}
-      />
-      {isLoading ? (
-        <div className="p-3 text-xs text-neutral-400">Loading...</div>
-      ) : null}
+      <div className="relative flex-1 min-h-0">
+        <TableVirtuoso
+          style={{ height: "100%" }}
+          data={tableRows}
+          computeItemKey={(_, row) => row.original.id}
+          endReached={() => onEndReached?.()}
+          fixedHeaderContent={renderHeader}
+          components={virtuosoComponents}
+          itemContent={(_, row) => (
+            <>
+              {row.getVisibleCells().map((cell) => (
+                <td
+                  key={cell.column.id + row.original.id}
+                  data-row-id={row.original.id}
+                  className={
+                    ([
+                      "priceUsd",
+                      "mcap",
+                      "mcapPc",
+                      "volumeUsd",
+                      "chg5m",
+                      "chg1h",
+                      "chg6h",
+                      "chg24h",
+                      "age",
+                    ].includes(cell.column.id)
+                      ? "text-right "
+                      : "text-left ") +
+                    "px-3 py-2 border-b border-neutral-800 align-middle text-xs font-mono"
+                  }
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </>
+          )}
+        />
+        {isLoading && rows.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-400 bg-neutral-950/40">
+            Loading...
+          </div>
+        ) : null}
+      </div>
       {isFetchingMore ? (
         <div className="p-3 text-xs text-neutral-400">Loading more…</div>
       ) : null}

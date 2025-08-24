@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import type { GetScannerResultParams } from "../lib/types";
 import { chainIdToName } from "../lib/types";
 import type { ScannerStore } from "../stores/scannerStore";
@@ -8,7 +8,6 @@ export function useScannerUpdates(
   filter: GetScannerResultParams,
   realtimeEnabled: boolean
 ) {
-  const subscribedRef = useRef<Set<string>>(new Set());
   const ws = store.getState().ws;
 
   useEffect(() => {
@@ -32,68 +31,44 @@ export function useScannerUpdates(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(filter), realtimeEnabled, ws]);
 
-  useEffect(() => {
-    if (!realtimeEnabled) {
-      for (const id of Array.from(subscribedRef.current))
-        subscribedRef.current.delete(id);
-      return;
-    }
-    const rows = store.getState().rows;
-    const desired = new Set(rows.map((r) => r.id));
-    const current = subscribedRef.current;
+  const onRowMount = useCallback(
+    (id: string) => {
+      if (!realtimeEnabled) return;
+      const st = store.getState();
+      const r = st.rowsById.get(id);
+      if (!r) return;
+      st.ws.subscribePairStats({
+        pair: r.pairAddress,
+        token: r.tokenAddress,
+        chain: chainIdToName(r.chainId),
+      });
+      st.ws.subscribePair({
+        pair: r.pairAddress,
+        token: r.tokenAddress,
+        chain: chainIdToName(r.chainId),
+      });
+    },
+    [realtimeEnabled, store]
+  );
 
-    for (const id of Array.from(current)) {
-      if (!desired.has(id)) {
-        const r = store.getState().rowsById.get(id);
-        if (r) {
-          ws.unsubscribePairStats({
-            pair: r.pairAddress,
-            token: r.tokenAddress,
-            chain: chainIdToName(r.chainId),
-          });
-          ws.unsubscribePair({
-            pair: r.pairAddress,
-            token: r.tokenAddress,
-            chain: chainIdToName(r.chainId),
-          });
-        }
-        current.delete(id);
-      }
-    }
+  const onRowUnmount = useCallback(
+    (id: string) => {
+      const st = store.getState();
+      const r = st.rowsById.get(id);
+      if (!r) return;
+      st.ws.unsubscribePairStats({
+        pair: r.pairAddress,
+        token: r.tokenAddress,
+        chain: chainIdToName(r.chainId),
+      });
+      st.ws.unsubscribePair({
+        pair: r.pairAddress,
+        token: r.tokenAddress,
+        chain: chainIdToName(r.chainId),
+      });
+    },
+    [store]
+  );
 
-    for (const r of rows) {
-      if (!current.has(r.id)) {
-        ws.subscribePairStats({
-          pair: r.pairAddress,
-          token: r.tokenAddress,
-          chain: chainIdToName(r.chainId),
-        });
-        ws.subscribePair({
-          pair: r.pairAddress,
-          token: r.tokenAddress,
-          chain: chainIdToName(r.chainId),
-        });
-        current.add(r.id);
-      }
-    }
-
-    return () => {
-      for (const id of Array.from(subscribedRef.current)) {
-        const r = store.getState().rowsById.get(id);
-        if (r) {
-          ws.unsubscribePairStats({
-            pair: r.pairAddress,
-            token: r.tokenAddress,
-            chain: chainIdToName(r.chainId),
-          });
-          ws.unsubscribePair({
-            pair: r.pairAddress,
-            token: r.tokenAddress,
-            chain: chainIdToName(r.chainId),
-          });
-        }
-      }
-      subscribedRef.current.clear();
-    };
-  }, [store, realtimeEnabled, ws]);
+  return { onRowMount, onRowUnmount };
 }

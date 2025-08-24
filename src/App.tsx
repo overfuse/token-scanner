@@ -39,6 +39,13 @@ function App() {
   const trendingRows = useStore(trendingStore, (s) => s.rows);
   const newRows = useStore(newStore, (s) => s.rows);
 
+  const trendingSubs = useScannerUpdates(
+    trendingStore,
+    trendingFilters,
+    realtimeTrending
+  );
+  const newSubs = useScannerUpdates(newStore, newFilters, realtimeNew);
+
   return (
     <div className="h-screen w-screen bg-neutral-950 flex p-4">
       <div className="grid grid-cols-2 gap-4 w-full">
@@ -55,6 +62,8 @@ function App() {
             isLoading={trendingQuery.isLoading}
             onEndReached={() => trendingQuery.loadMore()}
             isFetchingMore={trendingQuery.isFetchingMore}
+            onRowMount={trendingSubs.onRowMount}
+            onRowUnmount={trendingSubs.onRowUnmount}
           />
         </div>
         <div className="space-y-2 flex flex-col h-full items-stretch">
@@ -70,6 +79,8 @@ function App() {
             isLoading={newQuery.isLoading}
             onEndReached={() => newQuery.loadMore()}
             isFetchingMore={newQuery.isFetchingMore}
+            onRowMount={newSubs.onRowMount}
+            onRowUnmount={newSubs.onRowUnmount}
           />
         </div>
       </div>
