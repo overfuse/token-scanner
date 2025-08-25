@@ -60,6 +60,7 @@ function App() {
             title="Trending Tokens"
             rows={trendingRows}
             isLoading={trendingQuery.isLoading}
+            isError={trendingQuery.isError}
             onEndReached={() => trendingQuery.loadMore()}
             isFetchingMore={trendingQuery.isFetchingMore}
             onRowMount={trendingSubs.onRowMount}
@@ -77,6 +78,7 @@ function App() {
             title="New Tokens"
             rows={newRows}
             isLoading={newQuery.isLoading}
+            isError={newQuery.isError}
             onEndReached={() => newQuery.loadMore()}
             isFetchingMore={newQuery.isFetchingMore}
             onRowMount={newSubs.onRowMount}

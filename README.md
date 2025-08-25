@@ -61,6 +61,8 @@ yarn test:watch
 You will have to use a no-cors extension from the chrome web store during development
 `https://chromewebstore.google.com/detail/allow-cors-access-control/` - or any other extension with similar functionality.
 
+Enable CORS for REST API `https://api-rs.dexcelerate.com` and WebSocket `wss://api-rs.dexcelerate.com/ws`;
+
 ### Architecture Overview
 
 - Per‑table Zustand stores: `createScannerStore(ws)`

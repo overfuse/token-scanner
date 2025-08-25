@@ -42,6 +42,7 @@ export interface ScannerTableProps {
   title: string;
   rows: ScannerTableRow[];
   isLoading?: boolean;
+  isError?: boolean;
   onEndReached?: () => void;
   isFetchingMore?: boolean;
   onRowMount?: (id: string) => void;
@@ -75,6 +76,7 @@ export const ScannerTable = memo(function ScannerTable({
   title,
   rows,
   isLoading,
+  isError,
   onEndReached,
   isFetchingMore,
   onRowMount,
@@ -420,7 +422,13 @@ export const ScannerTable = memo(function ScannerTable({
             </>
           )}
         />
-        {isLoading && rows.length === 0 ? (
+        {isError ? (
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-amber-300 bg-neutral-950/40 px-4 text-center">
+            API request failed. In development, the API blocks cross‑domain
+            requests. Use a CORS-bypass browser extension for
+            https://api-rs.dexcelerate.com
+          </div>
+        ) : isLoading && rows.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-400 bg-neutral-950/40">
             Loading...
           </div>
