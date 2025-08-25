@@ -4,6 +4,10 @@
 
 Token Scanner renders two side‑by‑side tables (Trending Tokens and New Tokens) with infinite scrolling, real‑time updates via WebSocket, and performant virtualization.
 
+### Demo
+
+- Live demo: [overfuse.github.io/token-pages](https://overfuse.github.io/token-pages)
+
 ### Key Features
 
 - Two tables: Trending and New, full‑height layout

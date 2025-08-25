@@ -4,21 +4,7 @@ import tailwind from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Set base for GitHub Pages deployment under /token-scanner/
+  base: "/token-scanner/",
   plugins: [react(), tailwind()],
-  server: {
-    proxy: {
-      "/api": {
-        target: "https://api-rs.dexcelerate.com",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-      "/ws": {
-        target: "wss://api-rs.dexcelerate.com",
-        changeOrigin: true,
-        ws: true,
-        secure: true,
-      },
-    },
-  },
 });

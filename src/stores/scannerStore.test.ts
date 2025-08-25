@@ -154,6 +154,22 @@ describe("scannerStore", () => {
     const store = createScannerStore(ws, {});
     const a = makeResult({ pairAddress: "A", token1Address: "ta" });
     store.getState().onScannerPairs([a]);
+    const tf = {
+      buyVolume: "0",
+      buyers: 0,
+      buys: 0,
+      change: "0",
+      diff: "0",
+      first: "0",
+      last: "0",
+      makers: 0,
+      sellVolume: "0",
+      sellers: 0,
+      sells: 0,
+      txns: 0,
+      volume: "0",
+    } as const;
+
     const stats: PairStatsMsgData = {
       pair: {
         token1SniperWalletToTotalSupplyRatio: "0",
@@ -219,24 +235,10 @@ describe("scannerStore", () => {
         totalLockedRatio: "0",
       },
       pairStats: {
-        fiveMin: {
-          buyVolume: "0",
-          buyers: 0,
-          buys: 0,
-          change: "0",
-          diff: "0",
-          first: "0",
-          last: "0",
-          makers: 0,
-          sellVolume: "0",
-          sellers: 0,
-          sells: 0,
-          txns: 0,
-          volume: "0",
-        },
-        oneHour: this.fiveMin as any,
-        sixHour: this.fiveMin as any,
-        twentyFourHour: this.fiveMin as any,
+        fiveMin: tf as any,
+        oneHour: tf as any,
+        sixHour: tf as any,
+        twentyFourHour: tf as any,
       } as any,
       migrationProgress: "10",
       callCount: 1,
